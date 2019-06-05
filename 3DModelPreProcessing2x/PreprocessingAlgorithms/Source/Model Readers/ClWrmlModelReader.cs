@@ -16,6 +16,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
@@ -178,10 +179,14 @@ namespace Preprocessing
                     bool finishReading = false;
                     String line;
                     int pointNO = 0;
+                    bool start = false;
                     while ((line = FileStream.ReadLine()) != null && !finishReading)
                     {
-                        if (line.Contains("point"))
-                            continue;
+                        if (!start)
+                        {
+                            start = line.Contains("point");
+                        }
+                        if (!start) continue;
 
                         string[] parts = line.Split(' ');
                         for (int i = 0; i < parts.Length; i++)
@@ -192,26 +197,25 @@ namespace Preprocessing
                                 break;
                             }
                         }
-                        if (finishReading)
-                            break;
 
                         List<string> numbers = new List<string>();
 
                         foreach (string s in parts)
                         {
-                            if (s.Equals(""))
-                                continue;
-                            else
-                                numbers.Add(s);
-                                                                
+                            Match match = Regex.Match(s, "[-+]?[0-9]*.?[0-9]+"); // remove non-numerical characters
+                            if (match.Success)
+                                numbers.Add(match.Value); 
                         }
 
                         if (numbers.Count != 3)
-                            throw new Exception("Wrong file format, less coordinates than expected");
+                        {
+                            // throw new Exception("Wrong file format, less coordinates than expected");
+                            continue;
+                        }
 
-                        float X = Single.Parse(numbers[0].Replace(',', ' '), System.Globalization.CultureInfo.InvariantCulture);
-                        float Y = Single.Parse(numbers[1].Replace(',', ' '), System.Globalization.CultureInfo.InvariantCulture);
-                        float Z = Single.Parse(numbers[2].Replace(',', ' '), System.Globalization.CultureInfo.InvariantCulture);
+                        float X = GetFloat(numbers, 0);
+                        float Y = GetFloat(numbers, 1);
+                        float Z = GetFloat(numbers, 2);
 
                         Cl3DModel.Cl3DModelPointIterator newPoint = p_mModel3D.AddPointToModel(X, Y, Z);
                         if (texture != null && TextureCoord.Count != 0)
@@ -291,6 +295,12 @@ namespace Preprocessing
                 p_mModel3D.ResetModel();
                 throw;
             }
+        }
+
+        private static float GetFloat(List<string> numbers, int index)
+        {
+            float ret = Single.Parse(numbers[index], System.Globalization.CultureInfo.InvariantCulture);
+            return ret;
         }
     }
 }

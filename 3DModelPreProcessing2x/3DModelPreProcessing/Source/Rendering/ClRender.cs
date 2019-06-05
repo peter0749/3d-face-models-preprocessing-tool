@@ -61,16 +61,15 @@ namespace ModelPreProcessing
         private List<ClBaseRenderObject> m_ListRenderObjects = new List<ClBaseRenderObject>();
 
         //----------------------- Methods ------------------
+        private ClRender()
+        {
+        }
         static public ClRender getInstance()
         {
             if (m_instance == null)
                 m_instance = new ClRender();
 
             return m_instance;
-        }
-
-        private ClRender()
-        {
         }
       /*  private void CreateLights()
         {
